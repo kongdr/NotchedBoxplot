@@ -1,26 +1,61 @@
+# NotchBoxplot Package
 
-# NotchBoxplot
+## NotchBoxplot
 
-<!-- badges: start -->
-<!-- badges: end -->
+**NotchBoxplot** is an R package designed to create the dual-notched boxplot proposed by Kong et al. (2026). This visualization tool enables the simultaneous comparison of both **group means** and **group medians**. The mean and median notches are displayed independently on opposite sides of the box, which avoids the notch protrusion and improves the visual interpretation. 
 
-The goal of NotchBoxplot is to ...
+
+## Features
+
+### `notch_boxplot()`
+
+Generates a customizable dual-notched boxplot using ggplot2. It provides the geometric visual representations of the mean and median notches and allows users to configure the display sides, colors, widths, and notch depths to suit their data visualization needs.
+
+- A **mean notch** for comparing the group means.
+- A **median notch** based on the original notched boxplot.
 
 ## Installation
 
-You can install the development version of NotchBoxplot from [GitHub](https://github.com/) with:
+To install the **NotchBoxplot** package from GitHub, please use the following commands in R:
 
-``` r
-# install.packages("pak")
-pak::pak("kongdr/NotchBoxplot")
+```r
+install.packages("remotes")
+remotes::install_github("kongdr/NotchBoxplot")
 ```
 
-## Example
+## Documentation
+For detailed documentation, parameter descriptions, and the latest updates, please visit the package's GitHub repository at: https://github.com/kongdr/NotchBoxplot
 
-This is a basic example which shows you how to solve a common problem:
+## Usage
+Below are quick examples demonstrating how to create dual-notched boxplots using standard built-in R datasets.
 
-``` r
+### Example 1: Comparing the means only
+Using the built-in ToothGrowth dataset to display only the mean confidence interval notch.
+
+```r
 library(NotchBoxplot)
-## basic example code
+
+# Create a mean-notched boxplot
+notch_boxplot(data = ToothGrowth,
+              group_col = "supp",
+              value_col = "len",
+              show_mean_ci = TRUE,
+              show_med_ci = FALSE)
 ```
+### Example 2: Comparing simultaneously the group means and medians 
+Using the built-in iris dataset to compare both the group means and the group medians.
+
+```r
+library(NotchBoxplot)
+
+# Create a dual-notched boxplot
+notch_boxplot(data = iris,
+              group_col = "Species",
+              value_col = "Sepal.Width")
+```
+
+
+## References
+Kong, D., He, X., Wang, W., and Tong, T. (2026).  Dual-notched Boxplot: A New Visualization for Simultaneous Comparison of Means and Medians.
+
 
