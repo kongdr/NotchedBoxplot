@@ -56,6 +56,6 @@ notch_boxplot(data = iris,
 
 
 ## References
-Kong, D., He, X., Wang, W., and Tong, T. (2026).  Dual-Notched Boxplot: A New Visualization for the Simultaneous Comparison of Means and Medians.
+Kong, D., He, X., Wang, W., and Tong, T. (2026).  Dual-notched Boxplot: A New Visualization for Simultaneous Comparison of Means and Medians.
 
 
