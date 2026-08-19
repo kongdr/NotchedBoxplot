@@ -3,7 +3,7 @@
 #' This function generates a notched boxplot, which can simultaneously compare both the group means and medians.
 #' For theoretical details, please refer to Kong et al. (2026).
 #'
-#' @references Deru Kong, Xuming He, WenWu Wang, Tiejun Tong (2026). Dual-Notched Boxplot: A New Visualization for the Simultaneous Comparison of Means and Medians.
+#' @references Deru Kong, Xuming He, WenWu Wang, Tiejun Tong (2026). Dual-notched Boxplot: A New Visualization for Simultaneous Comparison of Means and Medians
 #'
 #' @param data The data frame containing the data.
 #' @param group_col The column name for grouping data (character string).

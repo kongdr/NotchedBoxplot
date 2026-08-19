@@ -68,5 +68,5 @@ notch_boxplot(data = iris,
               value_col = "Sepal.Width")
 }
 \references{
-Deru Kong, Xuming He, WenWu Wang, Tiejun Tong (2026). Dual-Notched Boxplot: A New Visualization for the Simultaneous Comparison of Means and Medians.
+Deru Kong, Xuming He, WenWu Wang, Tiejun Tong (2026). Dual-notched Boxplot: A New Visualization for Simultaneous Comparison of Means and Medians
 }
