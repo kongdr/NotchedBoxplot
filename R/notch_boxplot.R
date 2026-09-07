@@ -78,14 +78,21 @@ notch_boxplot <- function(data,
   core_stats <- df_with_fences %>%
     filter(value >= fence_low & value <= fence_high) %>%
     group_by(group) %>%
-    summarise(n_eff = n(), mean_val = mean(value, na.rm = TRUE), .groups = "drop")
+    summarise(
+      n_eff = n(),
+      mean_val = mean(value, na.rm = TRUE),
+      sd_in = sd(value, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(sd_in = ifelse(is.na(sd_in), 0, sd_in))
 
   stats <- stats_full %>%
     left_join(core_stats, by = "group") %>%
     mutate(
-      ci_mean_delta = 1.7 * (iqr / (1.349 * sqrt(n_eff))),
+      ci_mean_delta = 1.7 * (sd_in / sqrt(n_eff)),
       mean_top = mean_val + ci_mean_delta,
       mean_bot = mean_val - ci_mean_delta,
+
       ci_med_delta = 1.7 * (1.25 * iqr / (1.349 * sqrt(n_full))),
       med_top = med_val + ci_med_delta,
       med_bot = med_val - ci_med_delta
