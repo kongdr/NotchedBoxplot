@@ -52,7 +52,7 @@ notch_boxplot <- function(data,
                           fill_color = "white",
                           mean_color = "black",
                           outlier_size = 2,
-                          horizontal = FALSE) { # <-- 新增参数
+                          horizontal = FALSE) {
 
   # --- 1. Statistical Calculations ---
   df <- data.frame(group = data[[group_col]], value = data[[value_col]])
@@ -253,7 +253,6 @@ notch_boxplot <- function(data,
   }
 
   # --- 3. Plotting Layers ---
-  # 基础图形构建
   p <- ggplot() +
     geom_polygon(data = bind_rows(poly_fill_list), aes(x = x, y = y, group = interaction(group_id, type), fill = type), color = NA,alpha = 1) +
     scale_fill_manual(values = c("base_rect" = fill_color, "mean_hg" = "mediumpurple", "med_diamond" = "lightblue")) +
