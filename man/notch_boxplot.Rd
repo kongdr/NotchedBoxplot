@@ -17,7 +17,8 @@ notch_boxplot(
   line_color = "black",
   fill_color = "white",
   mean_color = "black",
-  outlier_size = 2
+  outlier_size = 2,
+  horizontal = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ notch_boxplot(
 \item{mean_color}{Character. The color of the dashed mean line. Default is "black".}
 
 \item{outlier_size}{Numeric. The size of the points representing outliers. Default is 2.}
+
+\item{horizontal}{Logical. Whether to draw the boxplot horizontally. Default is FALSE.}
 }
 \value{
 A ggplot object representing the dual-notched boxplot.
@@ -55,17 +58,18 @@ This function generates a notched boxplot, which can simultaneously compare both
 For theoretical details, please refer to Kong et al. (2026).
 }
 \examples{
-# Example using the built-in ToothGrowth dataset
+# Example using the built-in ToothGrowth dataset (Vertical)
 notch_boxplot(data = ToothGrowth,
               group_col = "supp",
               value_col = "len",
               show_mean_ci = TRUE,
               show_med_ci = FALSE)
 
-# Example using the built-in iris dataset
+# Example using the built-in iris dataset (Horizontal)
 notch_boxplot(data = iris,
               group_col = "Species",
-              value_col = "Sepal.Width")
+              value_col = "Sepal.Width",
+              horizontal = TRUE)
 }
 \references{
 Deru Kong, Xuming He, WenWu Wang, Tiejun Tong (2026). Dual-notched Boxplot: A New Visualization for Simultaneous Comparison of Means and Medians

@@ -18,6 +18,7 @@
 #' @param fill_color Character. The default fill color for the box. Default is "white".
 #' @param mean_color Character. The color of the dashed mean line. Default is "black".
 #' @param outlier_size Numeric. The size of the points representing outliers. Default is 2.
+#' @param horizontal Logical. Whether to draw the boxplot horizontally. Default is FALSE.
 #'
 #' @return  A ggplot object representing the dual-notched boxplot.
 #' @export
@@ -26,18 +27,18 @@
 #' @importFrom stats median quantile IQR qnorm
 #'
 #' @examples
-#' # Example using the built-in ToothGrowth dataset
+#' # Example using the built-in ToothGrowth dataset (Vertical)
 #' notch_boxplot(data = ToothGrowth,
 #'               group_col = "supp",
 #'               value_col = "len",
 #'               show_mean_ci = TRUE,
 #'               show_med_ci = FALSE)
 #'
-#' # Example using the built-in iris dataset
+#' # Example using the built-in iris dataset (Horizontal)
 #' notch_boxplot(data = iris,
 #'               group_col = "Species",
-#'               value_col = "Sepal.Width")
-
+#'               value_col = "Sepal.Width",
+#'               horizontal = TRUE)
 notch_boxplot <- function(data,
                           group_col,
                           value_col,
@@ -50,7 +51,8 @@ notch_boxplot <- function(data,
                           line_color = "black",
                           fill_color = "white",
                           mean_color = "black",
-                          outlier_size = 2) {
+                          outlier_size = 2,
+                          horizontal = FALSE) { # <-- 新增参数
 
   # --- 1. Statistical Calculations ---
   df <- data.frame(group = data[[group_col]], value = data[[value_col]])
@@ -251,7 +253,8 @@ notch_boxplot <- function(data,
   }
 
   # --- 3. Plotting Layers ---
-  ggplot() +
+  # 基础图形构建
+  p <- ggplot() +
     geom_polygon(data = bind_rows(poly_fill_list), aes(x = x, y = y, group = interaction(group_id, type), fill = type), color = NA,alpha = 1) +
     scale_fill_manual(values = c("base_rect" = fill_color, "mean_hg" = "mediumpurple", "med_diamond" = "lightblue")) +
     geom_segment(data = border_segments,
@@ -264,7 +267,7 @@ notch_boxplot <- function(data,
 
     (if(nrow(segment_mean) > 0) geom_segment(data = segment_mean,
                                              aes(x = x, y = y, xend = xend, yend = yend),
-                                             color = mean_color, linetype = "dashed", linewidth = 0.5))+
+                                             color = mean_color, linetype = "dashed", linewidth = 0.5)) +
 
     (if(nrow(points_outlier) > 0) geom_point(data = points_outlier, aes(x = x, y = y),
                                              shape = 16, size = outlier_size, color = "black")) +
@@ -275,7 +278,6 @@ notch_boxplot <- function(data,
       limits = c(0.5, length(levels_x) + 0.5),
       expand = c(0, 0)
     ) +
-    coord_cartesian(clip = "off") +
     theme(
       panel.background = element_rect(fill = "grey92", color = NA),
       panel.grid.major = element_line(color = "white", linewidth = 0.8),
@@ -290,7 +292,18 @@ notch_boxplot <- function(data,
       strip.placement = "outside",
       strip.background = element_blank(),
       strip.text = element_text(size = 14, color = "black"),
-      panel.spacing = unit(0, "lines"),
-      axis.title.x = element_blank()
+      panel.spacing = unit(0, "lines")
     ) + guides(fill = "none")
+
+  if (horizontal) {
+    p <- p +
+      coord_flip(clip = "off") +
+      theme(axis.title.y = element_blank())
+  } else {
+    p <- p +
+      coord_cartesian(clip = "off") +
+      theme(axis.title.x = element_blank())
+  }
+
+  return(p)
 }
