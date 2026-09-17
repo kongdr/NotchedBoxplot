@@ -8,6 +8,7 @@ notched_boxplot(
   data,
   group_col,
   value_col,
+  fence_rule = "chauvenet",
   show_mean_ci = TRUE,
   show_med_ci = TRUE,
   width = 0.4,
@@ -28,6 +29,8 @@ notched_boxplot(
 
 \item{value_col}{The column name for the values to plot (character string).}
 
+\item{fence_rule}{Character. The outlier detection rule. Options are "chauvenet" (the sample size adjusted fences by default) or "fixed" (Tukey's 1.5 fences).}
+
 \item{show_mean_ci}{Logical. Whether to display the mean notch. Default is TRUE.}
 
 \item{show_med_ci}{Logical. Whether to display the median notch. Default is TRUE.}
@@ -36,9 +39,9 @@ notched_boxplot(
 
 \item{indent_pct}{Numeric. The depth of the notch indentation as a percentage of the width. Default is 0.125.}
 
-\item{mean_side}{Character. The side of the box to display the mean notch ("left" or "right"). Default is "left".}
+\item{mean_side}{Character. The side of the box to display the mean notch ("left", "right" or "both"). Default is "left".}
 
-\item{med_side}{Character. The side of the box to display the median notch ("left" or "right"). Default is "right".}
+\item{med_side}{Character. The side of the box to display the median notch ("left", "right" or "both"). Default is "right".}
 
 \item{line_color}{Character. The color of the box borders, whiskers, and median line. Default is "black".}
 

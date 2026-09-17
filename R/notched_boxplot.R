@@ -8,12 +8,13 @@
 #' @param data The data frame containing the data.
 #' @param group_col The column name for grouping data (character string).
 #' @param value_col The column name for the values to plot (character string).
+#' @param fence_rule Character. The outlier detection rule. Options are "chauvenet" (the sample size adjusted fences by default) or "fixed" (Tukey's 1.5 fences).
 #' @param show_mean_ci Logical. Whether to display the mean notch. Default is TRUE.
 #' @param show_med_ci Logical. Whether to display the median notch. Default is TRUE.
 #' @param width Numeric. The width of the box. Default is 0.4.
 #' @param indent_pct Numeric. The depth of the notch indentation as a percentage of the width. Default is 0.125.
-#' @param mean_side Character. The side of the box to display the mean notch ("left" or "right"). Default is "left".
-#' @param med_side Character. The side of the box to display the median notch ("left" or "right"). Default is "right".
+#' @param mean_side Character. The side of the box to display the mean notch ("left", "right" or "both"). Default is "left".
+#' @param med_side Character. The side of the box to display the median notch ("left", "right" or "both"). Default is "right".
 #' @param line_color Character. The color of the box borders, whiskers, and median line. Default is "black".
 #' @param fill_color Character. The default fill color for the box. Default is "white".
 #' @param mean_color Character. The color of the dashed mean line. Default is "black".
@@ -40,19 +41,20 @@
 #'               value_col = "Sepal.Width",
 #'               horizontal = TRUE)
 notched_boxplot <- function(data,
-                          group_col,
-                          value_col,
-                          show_mean_ci = TRUE,
-                          show_med_ci = TRUE,
-                          width = 0.4,
-                          indent_pct = 0.125,
-                          mean_side = "left",
-                          med_side = "right",
-                          line_color = "black",
-                          fill_color = "white",
-                          mean_color = "black",
-                          outlier_size = 2,
-                          horizontal = FALSE) {
+                            group_col,
+                            value_col,
+                            fence_rule = "chauvenet",
+                            show_mean_ci = TRUE,
+                            show_med_ci = TRUE,
+                            width = 0.4,
+                            indent_pct = 0.125,
+                            mean_side = "left",
+                            med_side = "right",
+                            line_color = "black",
+                            fill_color = "white",
+                            mean_color = "black",
+                            outlier_size = 2,
+                            horizontal = FALSE) {
 
   # --- 1. Statistical Calculations ---
   df <- data.frame(group = data[[group_col]], value = data[[value_col]])
@@ -69,13 +71,15 @@ notched_boxplot <- function(data,
       .groups = "drop"
     ) %>%
     mutate(
-      chau_k = qnorm(1 - 0.25 / n_full) / 1.35 - 0.5,
-      fence_low = q1 - chau_k * iqr,
-      fence_high = q3 + chau_k * iqr
+      fence_k = ifelse(fence_rule == "chauvenet",
+                       qnorm(1 - 0.25 / n_full) / 1.35 - 0.5,
+                       1.5),
+      fence_low = q1 - fence_k * iqr,
+      fence_high = q3 + fence_k * iqr
     )
 
   df_with_fences <- df %>%
-    left_join(stats_full %>% select(group, fence_low, fence_high), by = "group")
+    left_join(stats_full %>% dplyr::select(group, fence_low, fence_high), by = "group")
 
   core_stats <- df_with_fences %>%
     filter(value >= fence_low & value <= fence_high) %>%
@@ -143,22 +147,22 @@ notched_boxplot <- function(data,
 
     poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(
       x = c(x_left, x_left, x_right, x_right), y = c(row$q1, row$q3, row$q3, row$q1),
-      group_id = g_name, type = "base_rect")
+      group_id = g_name, type = "base_rect", poly_id = length(poly_fill_list) + 1)
 
     l_off_q3 <- 0; l_off_q1 <- 0; r_off_q3 <- 0; r_off_q1 <- 0
-    if(show_mean_ci && curr_m_side == "left") {
+    if(show_mean_ci && curr_m_side %in% c("left", "both")) {
       l_off_q3 <- max(l_off_q3, get_hg_indent(row$q3, row$mean_val, row$mean_top, row$mean_bot, ind))
       l_off_q1 <- max(l_off_q1, get_hg_indent(row$q1, row$mean_val, row$mean_top, row$mean_bot, ind))
     }
-    if(show_med_ci && curr_d_side == "left") {
+    if(show_med_ci && curr_d_side %in% c("left", "both")) {
       l_off_q3 <- max(l_off_q3, get_dm_indent(row$q3, row$med_val, row$med_top, row$med_bot, ind))
       l_off_q1 <- max(l_off_q1, get_dm_indent(row$q1, row$med_val, row$med_top, row$med_bot, ind))
     }
-    if(show_mean_ci && curr_m_side == "right") {
+    if(show_mean_ci && curr_m_side %in% c("right", "both")) {
       r_off_q3 <- max(r_off_q3, get_hg_indent(row$q3, row$mean_val, row$mean_top, row$mean_bot, ind))
       r_off_q1 <- max(r_off_q1, get_hg_indent(row$q1, row$mean_val, row$mean_top, row$mean_bot, ind))
     }
-    if(show_med_ci && curr_d_side == "right") {
+    if(show_med_ci && curr_d_side %in% c("right", "both")) {
       r_off_q3 <- max(r_off_q3, get_dm_indent(row$q3, row$med_val, row$med_top, row$med_bot, ind))
       r_off_q1 <- max(r_off_q1, get_dm_indent(row$q1, row$med_val, row$med_top, row$med_bot, ind))
     }
@@ -169,69 +173,62 @@ notched_boxplot <- function(data,
       y = c(row$q3, row$q1), yend = c(row$q3, row$q1), group_id = g_name, line_type = "solid"))
 
     # Median solid line
-    m_start <- x_left + (if(show_med_ci && curr_d_side == "left") ind else if(show_mean_ci && curr_m_side == "left") get_hg_indent(row$med_val, row$mean_val, row$mean_top, row$mean_bot, ind) else 0)
-    m_end   <- x_right - (if(show_med_ci && curr_d_side == "right") ind else if(show_mean_ci && curr_m_side == "right") get_hg_indent(row$med_val, row$mean_val, row$mean_top, row$mean_bot, ind) else 0)
-    segment_median <- rbind(segment_median, data.frame(x=m_start, xend=m_end, y=row$med_val, yend=row$med_val, group_id=g_name))
+    m_start_off <- if(show_med_ci && curr_d_side %in% c("left", "both")) ind else if(show_mean_ci && curr_m_side %in% c("left", "both")) get_hg_indent(row$med_val, row$mean_val, row$mean_top, row$mean_bot, ind) else 0
+    m_end_off   <- if(show_med_ci && curr_d_side %in% c("right", "both")) ind else if(show_mean_ci && curr_m_side %in% c("right", "both")) get_hg_indent(row$med_val, row$mean_val, row$mean_top, row$mean_bot, ind) else 0
+    segment_median <- rbind(segment_median, data.frame(x=x_left+m_start_off, xend=x_right-m_end_off, y=row$med_val, yend=row$med_val, group_id=g_name))
 
     # Mean dashed line
     if(show_mean_ci){
-
       mean_start <- x_left
       mean_end <- x_right
-
       d_indent_at_mean <- 0
-      if(show_med_ci){
-        d_indent_at_mean <- get_dm_indent(
-          target_y = row$mean_val,
-          center_y = row$med_val,
-          top_y = row$med_top,
-          bot_y = row$med_bot,
-          notch_depth = ind
-        )
-      }
+      if(show_med_ci) d_indent_at_mean <- get_dm_indent(row$mean_val, row$med_val, row$med_top, row$med_bot, ind)
 
-      if(show_med_ci && curr_d_side == "left"){
-        mean_start <- x_left + d_indent_at_mean
-      }
-
-      if(show_med_ci && curr_d_side == "right"){
-        mean_end <- x_right - d_indent_at_mean
-      }
-
-      segment_mean <- rbind(
-        segment_mean,
-        data.frame(
-          x = mean_start,
-          xend = mean_end,
-          y = row$mean_val,
-          yend = row$mean_val,
-          group_id = g_name
-        )
-      )
+      if(show_med_ci && curr_d_side %in% c("left", "both")) mean_start <- x_left + d_indent_at_mean
+      if(show_med_ci && curr_d_side %in% c("right", "both")) mean_end <- x_right - d_indent_at_mean
+      segment_mean <- rbind(segment_mean, data.frame(x = mean_start, xend = mean_end, y = row$mean_val, yend = row$mean_val, group_id = g_name))
     }
 
     if(show_mean_ci) {
-      m_anchor <- if(curr_m_side == "left") x_left else x_right
-      m_tip    <- if(curr_m_side == "left") x_left + ind else x_right - ind
-      m_ext    <- if(curr_m_side == "left") x_left - ind else x_right + ind
-      poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(m_ext, m_tip, m_anchor), y=c(row$mean_top, row$mean_top, row$mean_val), group_id=g_name, type="mean_hg")
-      poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(m_ext, m_tip, m_anchor), y=c(row$mean_bot, row$mean_bot, row$mean_val), group_id=g_name, type="mean_hg")
-      border_segments <- rbind(border_segments, data.frame(
-        x=c(m_ext, m_ext, m_tip, m_ext, m_anchor, m_tip), y=c(row$mean_top, row$mean_bot, row$mean_top, row$mean_top, row$mean_val, row$mean_bot),
-        xend=c(m_tip, m_tip, m_anchor, m_anchor, m_ext, m_anchor), yend=c(row$mean_top, row$mean_bot, row$mean_val, row$mean_val, row$mean_bot, row$mean_val),
-        group_id=g_name, line_type = "solid"))
-      points_mean <- rbind(points_mean, data.frame(x=m_anchor, y=row$mean_val, group_id=g_name))
+      if(curr_m_side %in% c("left", "both")) {
+        m_anchor <- x_left; m_tip <- x_left + ind; m_ext <- x_left - ind
+        poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(m_ext, m_tip, m_anchor), y=c(row$mean_top, row$mean_top, row$mean_val), group_id=g_name, type="mean_hg", poly_id = length(poly_fill_list) + 1)
+        poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(m_ext, m_tip, m_anchor), y=c(row$mean_bot, row$mean_bot, row$mean_val), group_id=g_name, type="mean_hg", poly_id = length(poly_fill_list) + 1)
+        border_segments <- rbind(border_segments, data.frame(
+          x=c(m_ext, m_ext, m_tip, m_ext, m_anchor, m_tip), y=c(row$mean_top, row$mean_bot, row$mean_top, row$mean_top, row$mean_val, row$mean_bot),
+          xend=c(m_tip, m_tip, m_anchor, m_anchor, m_ext, m_anchor), yend=c(row$mean_top, row$mean_bot, row$mean_val, row$mean_val, row$mean_bot, row$mean_val),
+          group_id=g_name, line_type = "solid"))
+        points_mean <- rbind(points_mean, data.frame(x=m_anchor, y=row$mean_val, group_id=g_name))
+      }
+      if(curr_m_side %in% c("right", "both")) {
+        m_anchor <- x_right; m_tip <- x_right - ind; m_ext <- x_right + ind
+        poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(m_ext, m_tip, m_anchor), y=c(row$mean_top, row$mean_top, row$mean_val), group_id=g_name, type="mean_hg", poly_id = length(poly_fill_list) + 1)
+        poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(m_ext, m_tip, m_anchor), y=c(row$mean_bot, row$mean_bot, row$mean_val), group_id=g_name, type="mean_hg", poly_id = length(poly_fill_list) + 1)
+        border_segments <- rbind(border_segments, data.frame(
+          x=c(m_ext, m_ext, m_tip, m_ext, m_anchor, m_tip), y=c(row$mean_top, row$mean_bot, row$mean_top, row$mean_top, row$mean_val, row$mean_bot),
+          xend=c(m_tip, m_tip, m_anchor, m_anchor, m_ext, m_anchor), yend=c(row$mean_top, row$mean_bot, row$mean_val, row$mean_val, row$mean_bot, row$mean_val),
+          group_id=g_name, line_type = "solid"))
+        points_mean <- rbind(points_mean, data.frame(x=m_anchor, y=row$mean_val, group_id=g_name))
+      }
     }
 
     if(show_med_ci) {
-      d_anchor <- if(curr_d_side == "left") x_left else x_right
-      d_tip_in <- if(curr_d_side == "left") x_left + ind else x_right - ind
-      d_tip_out <- if(curr_d_side == "left") x_left - ind else x_right + ind
-      poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(d_anchor, d_tip_out, d_anchor, d_tip_in), y=c(row$med_top, row$med_val, row$med_bot, row$med_val), group_id=g_name, type="med_diamond")
-      border_segments <- rbind(border_segments, data.frame(
-        x=c(d_anchor, d_anchor, d_anchor, d_anchor), y=c(row$med_top, row$med_top, row$med_bot, row$med_bot),
-        xend=c(d_tip_out, d_tip_in, d_tip_out, d_tip_in), yend=rep(row$med_val, 4),
-        group_id=g_name, line_type = "solid"))
+      if(curr_d_side %in% c("left", "both")) {
+        d_anchor <- x_left; d_tip_in <- x_left + ind; d_tip_out <- x_left - ind
+        poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(d_anchor, d_tip_out, d_anchor, d_tip_in), y=c(row$med_top, row$med_val, row$med_bot, row$med_val), group_id=g_name, type="med_diamond", poly_id = length(poly_fill_list) + 1)
+        border_segments <- rbind(border_segments, data.frame(
+          x=c(d_anchor, d_anchor, d_anchor, d_anchor), y=c(row$med_top, row$med_top, row$med_bot, row$med_bot),
+          xend=c(d_tip_out, d_tip_in, d_tip_out, d_tip_in), yend=rep(row$med_val, 4),
+          group_id=g_name, line_type = "solid"))
+      }
+      if(curr_d_side %in% c("right", "both")) {
+        d_anchor <- x_right; d_tip_in <- x_right - ind; d_tip_out <- x_right + ind
+        poly_fill_list[[length(poly_fill_list)+1]] <- data.frame(x=c(d_anchor, d_tip_out, d_anchor, d_tip_in), y=c(row$med_top, row$med_val, row$med_bot, row$med_val), group_id=g_name, type="med_diamond", poly_id = length(poly_fill_list) + 1)
+        border_segments <- rbind(border_segments, data.frame(
+          x=c(d_anchor, d_anchor, d_anchor, d_anchor), y=c(row$med_top, row$med_top, row$med_bot, row$med_bot),
+          xend=c(d_tip_out, d_tip_in, d_tip_out, d_tip_in), yend=rep(row$med_val, 4),
+          group_id=g_name, line_type = "solid"))
+      }
     }
 
     draw_v <- function(sx, has_ci, ct, cb) {
@@ -240,10 +237,10 @@ notched_boxplot <- function(data,
         if(row$q1 < cb) border_segments <<- rbind(border_segments, data.frame(x=sx, y=row$q1, xend=sx, yend=cb, group_id=g_name, line_type="solid"))
       } else border_segments <<- rbind(border_segments, data.frame(x=sx, y=row$q1, xend=sx, yend=row$q3, group_id=g_name, line_type="solid"))
     }
-    draw_v(x_left, (show_mean_ci && curr_m_side=="left") || (show_med_ci && curr_d_side=="left"),
-           if(curr_m_side=="left" && show_mean_ci) row$mean_top else row$med_top, if(curr_m_side=="left" && show_mean_ci) row$mean_bot else row$med_bot)
-    draw_v(x_right, (show_mean_ci && curr_m_side=="right") || (show_med_ci && curr_d_side=="right"),
-           if(curr_m_side=="right" && show_mean_ci) row$mean_top else row$med_top, if(curr_m_side=="right" && show_mean_ci) row$mean_bot else row$med_bot)
+    draw_v(x_left, (show_mean_ci && curr_m_side %in% c("left", "both")) || (show_med_ci && curr_d_side %in% c("left", "both")),
+           if(curr_m_side %in% c("left", "both") && show_mean_ci) row$mean_top else row$med_top, if(curr_m_side %in% c("left", "both") && show_mean_ci) row$mean_bot else row$med_bot)
+    draw_v(x_right, (show_mean_ci && curr_m_side %in% c("right", "both")) || (show_med_ci && curr_d_side %in% c("right", "both")),
+           if(curr_m_side %in% c("right", "both") && show_mean_ci) row$mean_top else row$med_top, if(curr_m_side %in% c("right", "both") && show_mean_ci) row$mean_bot else row$med_bot)
 
     inside_vals <- raw_vals[raw_vals >= row$fence_low & raw_vals <= row$fence_high]
     act_low <- if(length(inside_vals)>0) min(inside_vals) else row$q1
@@ -254,7 +251,7 @@ notched_boxplot <- function(data,
 
   # --- 3. Plotting Layers ---
   p <- ggplot() +
-    geom_polygon(data = bind_rows(poly_fill_list), aes(x = x, y = y, group = interaction(group_id, type), fill = type), color = NA,alpha = 1) +
+    geom_polygon(data = bind_rows(poly_fill_list), aes(x = x, y = y, group = poly_id, fill = type), color = NA, alpha = 1) +
     scale_fill_manual(values = c("base_rect" = fill_color, "mean_hg" = "mediumpurple", "med_diamond" = "lightblue")) +
     geom_segment(data = border_segments,
                  aes(x = x, y = y, xend = xend, yend = yend, linetype = line_type),

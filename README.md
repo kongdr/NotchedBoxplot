@@ -21,6 +21,7 @@ To install the **NotchedBoxplot** package from GitHub, please use the following 
 ```r
 install.packages("remotes")
 remotes::install_github("kongdr/NotchedBoxplot")
+library(NotchedBoxplot)
 ```
 
 ## Documentation
