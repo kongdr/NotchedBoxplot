@@ -12,18 +12,18 @@ calc_notch_and_mean <- function(x, k_multiplier) {
   q1 <- quantile(x, 0.25, names = FALSE)
   q3 <- quantile(x, 0.75, names = FALSE)
   iqr_full <- q3 - q1
-  
+
   lf <- q1 - k_multiplier * iqr_full
   uf <- q3 + k_multiplier * iqr_full
-  
+
   x_in <- x[x >= lf & x <= uf]
-  
+
   n_eff <- length(x_in)
   mean_in <- mean(x_in)
-  
+
   sd_in <- ifelse(n_eff > 1, sd(x_in), 0)
   hw <- multiplier * sd_in / sqrt(n_eff)
-  
+
   return(list(
     notch = c(lower = mean_in - hw, upper = mean_in + hw),
     est_mean = mean_in
@@ -57,7 +57,7 @@ theme_unified <- function() {
 # PART 1: STUDY 1 - Visual Power under different distributions
 # ==============================================================================
 N_study1 <- 500
-delta_seq_1 <- seq(0, 0.8, by = 0.1) 
+delta_seq_1 <- seq(0, 0.8, by = 0.1)
 study1_results <- data.frame()
 
 # Chauvenet coefficient for N = 500
@@ -69,33 +69,33 @@ for (dist_type in scenarios_study1) {
   for (delta in delta_seq_1) {
     rej_sd <- logical(iterations)
     rej_welch <- logical(iterations)
-    
+
     for (i in 1:iterations) {
       if (dist_type == "Normal") {
         g_A <- rnorm(N_study1, 0, 1)
         g_B <- rnorm(N_study1, 0, 1) + delta
-        
+
       } else if (dist_type == "Heavy-Tailed") {
         g_A <- rt(N_study1, df = 3)
-        g_B <- rt(N_study1, df = 3) + delta 
-        
+        g_B <- rt(N_study1, df = 3) + delta
+
       } else if (dist_type == "LogNormal") {
         g_A <- rlnorm(N_study1, 0, 1)
         g_B <- rlnorm(N_study1, 0, 1) + delta
-        
+
       } else if (dist_type == "Variance_Mixture") {
         g_A <- ifelse(runif(N_study1) < 0.85, rnorm(N_study1, 0, 1), rnorm(N_study1, 0, 3))
         g_B <- ifelse(runif(N_study1) < 0.85, rnorm(N_study1, 0, 1), rnorm(N_study1, 0, 3)) + delta
       }
-      
+
       rej_welch[i] <- t.test(g_A, g_B)$p.value <= alpha
-      
+
       res_A <- calc_notch_and_mean(g_A, k_chau_study1)
       res_B <- calc_notch_and_mean(g_B, k_chau_study1)
-      
+
       rej_sd[i] <- max(res_A$notch["lower"], res_B$notch["lower"]) > min(res_A$notch["upper"], res_B$notch["upper"])
     }
-    
+
     study1_results <- rbind(study1_results, data.frame(
       Distribution = dist_type, Delta = delta,
       Notch_SD = mean(rej_sd), Welch = mean(rej_welch)
@@ -131,11 +131,11 @@ pB <- ggplot(plot_B, aes(x = Delta, y = Rate, color = Method, linetype = Method)
   geom_line(linewidth = 1) + geom_point(size = 2) +
   geom_hline(yintercept = 0.05, linetype = "dotted", color = "black") +
   annotate("text", x = 0.7, y = 0.12, label = "alpha == 0.05", parse = TRUE) +
-  labs(title = "(b) Heavy-tailed data ", x = expression(delta), y = "Rejection rate") + 
+  labs(title = "(b) Heavy-tailed data ", x = expression(delta), y = "Rejection rate") +
   scale_color_manual(values = study1_colors, labels = study1_labels) +
   scale_linetype_manual(values = study1_lines, labels = study1_labels) +
   theme_unified() +
-  theme(axis.title.y = element_blank(), axis.text.y = element_blank()) 
+  theme(axis.title.y = element_blank(), axis.text.y = element_blank())
 
 # (c) Variance Mixture Data Calibration
 plot_C_dist <- study1_results %>% filter(Distribution == "Variance_Mixture") %>%
@@ -145,10 +145,10 @@ pC_dist <- ggplot(plot_C_dist, aes(x = Delta, y = Rate, color = Method, linetype
   geom_line(linewidth = 1) + geom_point(size = 2) +
   geom_hline(yintercept = 0.05, linetype = "dotted", color = "black") +
   annotate("text", x = 0.7, y = 0.12, label = "alpha == 0.05", parse = TRUE) +
-  labs(title = "(c) Variance-mixture data", x = expression(delta), y = "Rejection rate") + 
+  labs(title = "(c) Variance-mixture data", x = expression(delta), y = "Rejection rate") +
   scale_color_manual(values = study1_colors, labels = study1_labels) +
   scale_linetype_manual(values = study1_lines, labels = study1_labels) +
-  theme_unified() 
+  theme_unified()
 
 # (d) Skewed Data Calibration (LogNormal)
 plot_D_dist <- study1_results %>% filter(Distribution == "LogNormal") %>%
@@ -162,11 +162,11 @@ pD_dist <- ggplot(plot_D_dist, aes(x = Delta, y = Rate, color = Method, linetype
   scale_color_manual(values = study1_colors, labels = study1_labels) +
   scale_linetype_manual(values = study1_lines, labels = study1_labels) +
   theme_unified()+
-  theme(axis.title.y = element_blank(), axis.text.y = element_blank()) 
+  theme(axis.title.y = element_blank(), axis.text.y = element_blank())
 
 # Combine into a 2x2 layout
-plot_Visual <- (pA | pB) / (pC_dist | pD_dist) + 
-  plot_layout(guides = "collect") & 
+plot_Visual <- (pA | pB) / (pC_dist | pD_dist) +
+  plot_layout(guides = "collect") &
   theme(legend.position = "bottom", legend.box = "horizontal")
 
 print(plot_Visual)
@@ -177,10 +177,10 @@ ggsave("Visual_power.pdf", plot_Visual, width = 12, height = 9, device = "pdf")
 # ==============================================================================
 n_seq <- c(100, 200, 500, 1000, 2000, 5000, 10000)
 contam_rate <- 0.02
-valid_tail_prob <- 0.07  
+valid_tail_prob <- 0.07
 m_tail <- 3.2
 s_tail <- 0.2
-delta_true <- valid_tail_prob * m_tail 
+delta_true <- valid_tail_prob * m_tail
 
 study2_results <- data.frame()
 
@@ -188,35 +188,35 @@ for (N in n_seq) {
   k_chau <- qnorm(1 - 0.25/N) / 1.35 - 0.5
   n_contam <- round(N * contam_rate)
   n_clean <- N - n_contam
-  
+
   rej_15 <- logical(iterations)
   rej_ch <- logical(iterations)
   diff_15 <- numeric(iterations)
   diff_ch <- numeric(iterations)
-  
+
   for (i in 1:iterations) {
     nB_tail <- rbinom(1, size = n_clean, prob = valid_tail_prob)
     nB_core <- n_clean - nB_tail
-    
+
     clean_A <- rnorm(n_clean, 0, 1)
     contam_A <- runif(n_contam, 7, 8)
     g_A <- c(clean_A, contam_A)
-    
+
     clean_B <- c(rnorm(nB_core, 0, 1), rnorm(nB_tail, m_tail, s_tail))
     contam_B <- runif(n_contam, 7, 8)
     g_B <- c(clean_B, contam_B)
-    
+
     res_A_15 <- calc_notch_and_mean(g_A, 1.5)
     res_B_15 <- calc_notch_and_mean(g_B, 1.5)
     rej_15[i] <- max(res_A_15$notch["lower"], res_B_15$notch["lower"]) > min(res_A_15$notch["upper"], res_B_15$notch["upper"])
     diff_15[i] <- res_B_15$est_mean - res_A_15$est_mean
-    
+
     res_A_ch <- calc_notch_and_mean(g_A, k_chau)
     res_B_ch <- calc_notch_and_mean(g_B, k_chau)
     rej_ch[i] <- max(res_A_ch$notch["lower"], res_B_ch$notch["lower"]) > min(res_A_ch$notch["upper"], res_B_ch$notch["upper"])
     diff_ch[i] <- res_B_ch$est_mean - res_A_ch$est_mean
   }
-  
+
   study2_results <- rbind(study2_results, data.frame(
     N = N,
     Reject_15 = mean(rej_15),
@@ -240,13 +240,13 @@ pC <- ggplot(plot_C, aes(x = N, y = Rate, color = Method, group = Method, linety
   geom_line(linewidth = 1) + geom_point(size = 2) +
   labs(title = "(a) Power under contamination", x = "n", y = "Power") +
   scale_color_manual(
-    breaks = c("Reject_Ch", "Reject_15"), 
-    values = c("Reject_Ch" = "#E63946", "Reject_15" = "darkgreen"), 
+    breaks = c("Reject_Ch", "Reject_15"),
+    values = c("Reject_Ch" = "#E63946", "Reject_15" = "darkgreen"),
     labels = c("Reject_Ch" = "Chauvenet", "Reject_15" = "Fixed 1.5")
   ) +
   scale_linetype_manual(
-    breaks = c("Reject_Ch", "Reject_15"), 
-    values = c("Reject_Ch" = "dotdash",  "Reject_15" = "dashed"), 
+    breaks = c("Reject_Ch", "Reject_15"),
+    values = c("Reject_Ch" = "dotdash",  "Reject_15" = "dashed"),
     labels = c("Reject_Ch" = "Chauvenet", "Reject_15" = "Fixed 1.5")
   ) +
   theme_unified()
@@ -260,20 +260,139 @@ pD <- ggplot(plot_D, aes(x = N, y = Error, color = Method, group = Method, linet
   geom_line(linewidth = 1) + geom_point(size = 2) +
   labs(title = "(b) RMSE of mean difference", x = "n", y = "RMSE") +
   scale_color_manual(
-    breaks = c("RMSE_Ch", "RMSE_15"), 
-    values = c("RMSE_Ch" = "#E63946",  "RMSE_15" = "darkgreen"), 
+    breaks = c("RMSE_Ch", "RMSE_15"),
+    values = c("RMSE_Ch" = "#E63946",  "RMSE_15" = "darkgreen"),
     labels = c("RMSE_Ch" = "Chauvenet", "RMSE_15" = "Fixed 1.5")
   ) +
   scale_linetype_manual(
-    breaks = c("RMSE_Ch", "RMSE_15"), 
-    values = c("RMSE_Ch" = "dotdash", "RMSE_15" = "dashed"), 
+    breaks = c("RMSE_Ch", "RMSE_15"),
+    values = c("RMSE_Ch" = "dotdash", "RMSE_15" = "dashed"),
     labels = c("RMSE_Ch" = "Chauvenet", "RMSE_15" = "Fixed 1.5")
   ) +
   theme_unified()
 
-plot_conta <- (pC | pD) + 
-  plot_layout(guides = "collect") & 
+plot_conta <- (pC | pD) +
+  plot_layout(guides = "collect") &
   theme(legend.position = "bottom", legend.box = "horizontal")
 
-print(plot_conta) 
+print(plot_conta)
 ggsave("conta.pdf", plot_conta, width = 12, height = 5, device = "pdf")
+
+# ==============================================================================
+# PART 3: STUDY 3 - mean notches vs median notches
+# ==============================================================================
+n <- 200
+standardize_normal <- function(n) {
+  med0 <- 0
+  iqr0 <- qnorm(0.75) - qnorm(0.25)
+
+  x <- rnorm(n, mean = 0, sd = 1)
+  (x - med0) / iqr0
+}
+
+standardize_gamma <- function(n, shape) {
+  set.seed(2025)
+  med0 <- qgamma(0.50, shape = shape, scale = 1)
+  q1   <- qgamma(0.25, shape = shape, scale = 1)
+  set.seed(2024)
+  q3   <- qgamma(0.75, shape = shape, scale = 1)
+  iqr0 <- q3 - q1
+
+  x <- rgamma(n, shape = shape, scale = 1)
+  (x - med0) / iqr0
+}
+
+reference <- standardize_normal(n)
+skew_mild     <- standardize_gamma(n, shape = 5)
+skew_moderate <- standardize_gamma(n, shape = 2)
+skew_strong   <- standardize_gamma(n, shape = 0.3)
+
+make_data <- function(reference, skewed) {
+  data.frame(
+    Group = factor(
+      rep(c("Reference", "Skewed"), each = length(reference)),
+      levels = c("Reference", "Skewed")
+    ),
+    Value = c(reference, skewed)
+  )
+}
+
+dat_a <- make_data(reference, skew_mild)
+dat_b <- make_data(reference, skew_moderate)
+dat_c <- make_data(reference, skew_strong)
+
+# ==============================================================================
+# Global Theme Definition
+# ==============================================================================
+jcgs_theme <- theme_minimal(base_size = 14) +
+  theme(
+    panel.background = element_rect(fill = "grey92", color = NA),
+    panel.grid.major = element_line(color = "white", linewidth = 0.8),
+    panel.grid.minor = element_blank(),
+    axis.line = element_blank(),
+    axis.text.y = element_text(color = "black", size = 12),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 14, hjust = 0.5, color = "grey20"),
+    plot.margin = margin(10, 5, 5, 5),
+    legend.position = "none",
+    strip.placement = "outside",
+    strip.background = element_blank(),
+    strip.text = element_text(size = 14, color = "black"),
+    panel.spacing = unit(0, "lines")
+  )
+# ---------------------------------------------------
+# Plot (a): Mild skewness
+# ---------------------------------------------------
+p1 <- notched_boxplot(dat_a, "Group", "Value",
+                      show_mean_ci = TRUE,
+                      show_med_ci = TRUE,
+                      width = 0.5,
+                      indent_pct = 0.125,
+                      mean_side = "left",
+                      med_side = "right"
+) +
+  coord_cartesian(ylim = c(-1.8, 5.5)) +
+  labs(title = "(a) Mild skewness", x = NULL, y = "Standardized value") +
+  jcgs_theme
+
+# ---------------------------------------------------
+# Plot (b): Moderate skewness
+# ---------------------------------------------------
+p2 <- notched_boxplot(dat_b, "Group", "Value",
+                      show_mean_ci = TRUE,
+                      show_med_ci = TRUE,
+                      width = 0.5,
+                      indent_pct = 0.125,
+                      mean_side = "left",
+                      med_side = "right"
+) +
+  coord_cartesian(ylim = c(-1.8, 5.5)) +
+  labs(title = "(b) Moderate skewness", x = NULL, y = NULL) +
+  jcgs_theme +
+  theme(axis.text.y = element_blank(), axis.title.y = element_blank())
+
+# ---------------------------------------------------
+# Plot (c): Strong skewness
+# ---------------------------------------------------
+p3 <- notched_boxplot(dat_c, "Group", "Value",
+                      show_mean_ci = TRUE,
+                      show_med_ci = TRUE,
+                      width = 0.5,
+                      indent_pct = 0.125,
+                      mean_side = "left",
+                      med_side = "right"
+) +
+  coord_cartesian(ylim = c(-1.8, 5.5)) +
+  labs(title = "(c) Strong skewness", x = NULL, y = NULL) +
+  jcgs_theme +
+  theme(axis.text.y = element_blank(), axis.title.y = element_blank())
+
+# ==============================================================================
+# 4. Combine panels
+# ==============================================================================
+final_panel <- p1 | p2 | p3
+
+print(final_panel)
+ggsave("notch_separation.pdf", final_panel, width = 9.5, height = 6.5, device = cairo_pdf)
