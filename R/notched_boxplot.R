@@ -60,7 +60,7 @@ notched_boxplot <- function(data,
   df <- data.frame(group = data[[group_col]], value = data[[value_col]])
   levels_x <- levels(factor(df$group))
 
-  fence <- match.arg(fence_rule)
+  fence_rule <- match.arg(fence_rule)
   stats_full <- df %>%
     group_by(group) %>%
     summarise(
