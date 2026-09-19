@@ -346,8 +346,8 @@ jcgs_theme <- theme_minimal(base_size = 14) +
 # Plot (a): Mild skewness
 # ---------------------------------------------------
 p1 <- notched_boxplot(dat_a, "Group", "Value",
-                      show_mean_ci = TRUE,
-                      show_med_ci = TRUE,
+                      show_mean = TRUE,
+                      show_med = TRUE,
                       width = 0.5,
                       indent_pct = 0.125,
                       mean_side = "left",
@@ -361,8 +361,8 @@ p1 <- notched_boxplot(dat_a, "Group", "Value",
 # Plot (b): Moderate skewness
 # ---------------------------------------------------
 p2 <- notched_boxplot(dat_b, "Group", "Value",
-                      show_mean_ci = TRUE,
-                      show_med_ci = TRUE,
+                      show_mean = TRUE,
+                      show_med = TRUE,
                       width = 0.5,
                       indent_pct = 0.125,
                       mean_side = "left",
@@ -377,8 +377,8 @@ p2 <- notched_boxplot(dat_b, "Group", "Value",
 # Plot (c): Strong skewness
 # ---------------------------------------------------
 p3 <- notched_boxplot(dat_c, "Group", "Value",
-                      show_mean_ci = TRUE,
-                      show_med_ci = TRUE,
+                      show_mean = TRUE,
+                      show_med = TRUE,
                       width = 0.5,
                       indent_pct = 0.125,
                       mean_side = "left",

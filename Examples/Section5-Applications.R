@@ -54,16 +54,16 @@ p_classical <- ggplot(warpbreaks, aes(x = as.numeric(Group), y = breaks, group =
     expand = c(0, 0)
   ) +
   coord_cartesian(clip = "off") +
-  labs(title = "(a) Median-notched boxplot (1978)", x = NULL, y = "Number of breaks") +
+  labs(title = "(a) Median-notched boxplots (1978)", x = NULL, y = "Number of breaks") +
   jcgs_theme
 
 # Plot (b): Proposed dual-notched boxplot
 p_proposed <- notched_boxplot(warpbreaks, "Group", "breaks",
-                              show_mean_ci = TRUE,
-                              show_med_ci = TRUE,
+                              show_mean = TRUE,
+                              show_med = TRUE,
                               width = 0.35,
                               mean_side = "left") +
-  labs(title = "(b) Dual-notched boxplot", x = NULL, y = "Number of breaks") +
+  labs(title = "(b) Dual-notched boxplots", x = NULL, y = "Number of breaks") +
   jcgs_theme
 
 # ==============================================================================

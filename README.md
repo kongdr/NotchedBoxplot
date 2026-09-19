@@ -40,8 +40,8 @@ library(NotchedBoxplot)
 notched_boxplot(data = ToothGrowth,
               group_col = "supp",
               value_col = "len",
-              show_mean_ci = TRUE,
-              show_med_ci = FALSE)
+              show_mean = TRUE,
+              show_med = FALSE)
 ```
 ### Example 2: Comparing simultaneously the group means and medians 
 Using the built-in iris dataset to compare both the group means and the group medians.

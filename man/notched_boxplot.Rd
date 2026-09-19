@@ -8,9 +8,9 @@ notched_boxplot(
   data,
   group_col,
   value_col,
-  fence_rule = "chauvenet",
-  show_mean_ci = TRUE,
-  show_med_ci = TRUE,
+  fence_rule = c("chau", "1.5"),
+  show_mean = TRUE,
+  show_med = TRUE,
   width = 0.4,
   indent_pct = 0.125,
   mean_side = "left",
@@ -29,11 +29,11 @@ notched_boxplot(
 
 \item{value_col}{The column name for the values to plot (character string).}
 
-\item{fence_rule}{Character. The outlier detection rule. Options are "chauvenet" (the sample size adjusted fences by default) or "fixed" (Tukey's 1.5 fences).}
+\item{fence_rule}{Character. The outlier detection rule. Options are "chau" (the sample-size-adjusted fences based on Chauvenet’s criterion) or "1.5" (Tukey’s fences with a 1.5 multiplier). Default is "chau".}
 
-\item{show_mean_ci}{Logical. Whether to display the mean notch. Default is TRUE.}
+\item{show_mean}{Logical. Whether to display the mean notch. Default is TRUE.}
 
-\item{show_med_ci}{Logical. Whether to display the median notch. Default is TRUE.}
+\item{show_med}{Logical. Whether to display the median notch. Default is TRUE.}
 
 \item{width}{Numeric. The width of the box. Default is 0.4.}
 
@@ -65,8 +65,8 @@ For theoretical details, please refer to Kong et al. (2026).
 notched_boxplot(data = ToothGrowth,
               group_col = "supp",
               value_col = "len",
-              show_mean_ci = TRUE,
-              show_med_ci = FALSE)
+              show_mean = TRUE,
+              show_med = FALSE)
 
 # Example using the built-in iris dataset (Horizontal)
 notched_boxplot(data = iris,

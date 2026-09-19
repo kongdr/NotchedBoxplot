@@ -49,36 +49,36 @@ jcgs_theme <- theme_minimal(base_size = 14) +
 
 # Display only median notches (facing each other)
 p_new_2 <- notched_boxplot(sim_data_norm, "Group", "Value",
-                           show_mean_ci = FALSE,
-                           show_med_ci = TRUE ,
+                           show_mean = FALSE,
+                           show_med = TRUE ,
                            width = 0.5,
                            indent_pct = 0.125,
                            med_side = c("right", "left")
 ) +
   scale_y_continuous(breaks = y_breaks_norm) +
   coord_cartesian(ylim = y_limits_norm, xlim = x_limits) +
-  labs(title = "(b) Median-notched boxplot", x = NULL, y = NULL) +
+  labs(title = "(b) Median-notched boxplots", x = NULL, y = NULL) +
   jcgs_theme +
   theme(axis.text.y = element_blank(), axis.title.y = element_blank()) # Hide Y-axis
 
 # Display only mean notches (facing each other)
 p_new_1 <- notched_boxplot(sim_data_norm, "Group", "Value",
-                           show_mean_ci = TRUE,
-                           show_med_ci = FALSE,
+                           show_mean = TRUE,
+                           show_med = FALSE,
                            width = 0.5,
                            indent_pct = 0.125,
                            mean_side = c("right", "left")
 ) +
   scale_y_continuous(breaks = y_breaks_norm) +
   coord_cartesian(ylim = y_limits_norm, xlim = x_limits) +
-  labs(title = "(c) Mean-notched boxplot", x = NULL, y = NULL) +
+  labs(title = "(c) Mean-notched boxplots", x = NULL, y = NULL) +
   jcgs_theme +
   theme(axis.text.y = element_blank(), axis.title.y = element_blank()) # Hide Y-axis
 
 # Display both mean and median notches simultaneously
 p_new <- notched_boxplot(sim_data_norm, "Group", "Value",
-                         show_mean_ci = TRUE,
-                         show_med_ci = TRUE,
+                         show_mean = TRUE,
+                         show_med = TRUE,
                          width = 0.5,
                          indent_pct = 0.125,
                          mean_side = "left",
@@ -86,7 +86,7 @@ p_new <- notched_boxplot(sim_data_norm, "Group", "Value",
 ) +
   scale_y_continuous(breaks = y_breaks_norm) +
   coord_cartesian(ylim = y_limits_norm, xlim = x_limits) +
-  labs(title = "(a) Dual-notched boxplot", x = NULL, y = NULL) +
+  labs(title = "(a) Dual-notched boxplots", x = NULL, y = NULL) +
   jcgs_theme
 
 # ==========================================
@@ -142,7 +142,7 @@ p_classic <- ggplot(plot_data, aes(x = Condition_Group, y = price)) +
     outlier.size = 2
   )  +
   labs(
-    title = "(a) Median-notched boxplot (1978)",
+    title = "(a) Median-notched boxplots (1978)",
     x = "",
     y = "Price (Thousands of USD)"
   ) +
@@ -156,13 +156,13 @@ p_dual <- notched_boxplot(
   data = plot_data,
   group_col = "Condition_Group",
   value_col = "price",
-  show_mean_ci = TRUE,
-  show_med_ci = TRUE,
+  show_mean = TRUE,
+  show_med = TRUE,
   width = 0.5,
   indent_pct = 0.125
 ) +
   labs(
-    title = "(b) Mean-notched boxplot",
+    title = "(b) Mean-notched boxplots",
     x = NULL,
     y = NULL
   ) +
