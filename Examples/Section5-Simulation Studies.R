@@ -56,46 +56,64 @@ theme_unified <- function() {
 # ==============================================================================
 # PART 1: STUDY 1 - Visual Power under different distributions
 # ==============================================================================
-N_study1 <- 500
 delta_seq_1 <- seq(0, 0.8, by = 0.1)
 study1_results <- data.frame()
 
-# Chauvenet coefficient for N = 500
-k_chau_study1 <- qnorm(1 - 0.25/N_study1) / 1.35 - 0.5
-
-scenarios_study1 <- c("Normal", "Heavy-Tailed", "LogNormal", "Variance_Mixture")
+scenarios_study1 <- c("Normal", "Heavy-Tailed", "Variance_Mixture", "Skewed")
 
 for (dist_type in scenarios_study1) {
+
+  # sample size
+  if (dist_type == "Normal") {
+    N_A <- 200; N_B <- 200
+  } else if (dist_type == "Heavy-Tailed") {
+    N_A <- 100; N_B <- 500
+  } else if (dist_type == "Variance_Mixture") {
+    N_A <- 1000;  N_B <- 50
+  } else if (dist_type == "Skewed") {
+    N_A <- 500; N_B <- 500
+  }
+
+  # Chauvenet coefficient
+  k_chau_A <- qnorm(1 - 0.25 / N_A) / 1.35 - 0.5
+  k_chau_B <- qnorm(1 - 0.25 / N_B) / 1.35 - 0.5
+
   for (delta in delta_seq_1) {
     rej_sd <- logical(iterations)
     rej_welch <- logical(iterations)
 
     for (i in 1:iterations) {
+
       if (dist_type == "Normal") {
-        g_A <- rnorm(N_study1, 0, 1)
-        g_B <- rnorm(N_study1, 0, 1) + delta
+        g_A <- rnorm(N_A, mean = 0, sd = 2)
+        g_B <- rnorm(N_B, mean = delta, sd = 1)
 
       } else if (dist_type == "Heavy-Tailed") {
-        g_A <- rt(N_study1, df = 3)
-        g_B <- rt(N_study1, df = 3) + delta
-
-      } else if (dist_type == "LogNormal") {
-        g_A <- rlnorm(N_study1, 0, 1)
-        g_B <- rlnorm(N_study1, 0, 1) + delta
+        g_A <- rt(N_A, df = 3)
+        g_B <- rt(N_B, df = 3) + delta
 
       } else if (dist_type == "Variance_Mixture") {
-        g_A <- ifelse(runif(N_study1) < 0.85, rnorm(N_study1, 0, 1), rnorm(N_study1, 0, 3))
-        g_B <- ifelse(runif(N_study1) < 0.85, rnorm(N_study1, 0, 1), rnorm(N_study1, 0, 3)) + delta
-      }
+        g_A <- ifelse(runif(N_A) < 0.85, rnorm(N_A, 0, 1), rnorm(N_A, 0, 3))
+        g_B <- ifelse(runif(N_B) < 0.85, rnorm(N_B, 0, 1), rnorm(N_B, 0, 3)) + delta
 
+      } else if (dist_type == "Skewed") {
+        shift_correction <- sqrt(5) - sqrt(2.5)
+
+        g_A <- rgamma(N_A, shape = 5, scale = 1/sqrt(5))
+        g_B <- rgamma(N_B, shape = 5, scale = 1/sqrt(10)) + shift_correction + delta
+      }
+      # ==================================================
+
+      # Welch t-test
       rej_welch[i] <- t.test(g_A, g_B)$p.value <= alpha
 
-      res_A <- calc_notch_and_mean(g_A, k_chau_study1)
-      res_B <- calc_notch_and_mean(g_B, k_chau_study1)
+      res_A <- calc_notch_and_mean(g_A, k_chau_A)
+      res_B <- calc_notch_and_mean(g_B, k_chau_B)
 
       rej_sd[i] <- max(res_A$notch["lower"], res_B$notch["lower"]) > min(res_A$notch["upper"], res_B$notch["upper"])
     }
 
+    # save
     study1_results <- rbind(study1_results, data.frame(
       Distribution = dist_type, Delta = delta,
       Notch_SD = mean(rej_sd), Welch = mean(rej_welch)
@@ -108,9 +126,9 @@ for (dist_type in scenarios_study1) {
 # ==============================================================================
 study1_colors <- c("Notch_SD" = "#E63946", "Welch" = "black")
 study1_lines <- c("Notch_SD" = "solid", "Welch" = "dashed")
-study1_labels <- c("Mean notch", "Welch t-test")
+study1_labels <- c("Mean notch", "Welch's t-test")
 
-# (a) Normal Data Calibration
+# (a) Normal Data
 plot_A <- study1_results %>% filter(Distribution == "Normal") %>%
   pivot_longer(cols = c(Notch_SD, Welch), names_to = "Method", values_to = "Rate")
 
@@ -123,7 +141,7 @@ pA <- ggplot(plot_A, aes(x = Delta, y = Rate, color = Method, linetype = Method)
   scale_linetype_manual(values = study1_lines, labels = study1_labels) +
   theme_unified()
 
-# (b) Heavy-Tailed Data Calibration
+# (b) Heavy-Tailed Data
 plot_B <- study1_results %>% filter(Distribution == "Heavy-Tailed") %>%
   pivot_longer(cols = c(Notch_SD, Welch), names_to = "Method", values_to = "Rate")
 
@@ -137,7 +155,7 @@ pB <- ggplot(plot_B, aes(x = Delta, y = Rate, color = Method, linetype = Method)
   theme_unified() +
   theme(axis.title.y = element_blank(), axis.text.y = element_blank())
 
-# (c) Variance Mixture Data Calibration
+# (c) Variance Mixture Data
 plot_C_dist <- study1_results %>% filter(Distribution == "Variance_Mixture") %>%
   pivot_longer(cols = c(Notch_SD, Welch), names_to = "Method", values_to = "Rate")
 
@@ -150,8 +168,8 @@ pC_dist <- ggplot(plot_C_dist, aes(x = Delta, y = Rate, color = Method, linetype
   scale_linetype_manual(values = study1_lines, labels = study1_labels) +
   theme_unified()
 
-# (d) Skewed Data Calibration (LogNormal)
-plot_D_dist <- study1_results %>% filter(Distribution == "LogNormal") %>%
+# (d) Skewed Data
+plot_D_dist <- study1_results %>% filter(Distribution == "Skewed") %>%
   pivot_longer(cols = c(Notch_SD, Welch), names_to = "Method", values_to = "Rate")
 
 pD_dist <- ggplot(plot_D_dist, aes(x = Delta, y = Rate, color = Method, linetype = Method)) +
