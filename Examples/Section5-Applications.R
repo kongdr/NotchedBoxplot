@@ -74,4 +74,5 @@ final_stacked_plot <- (p_classical / p_proposed) +
 
 print(final_stacked_plot)
 
-ggsave("realdata_1978.pdf", final_stacked_plot, width = 8.2, height = 10, device = "pdf")
+ggsave("realdata_1978.pdf", final_stacked_plot, width = 8.2, height = 10, device = cairo_pdf)
+

@@ -137,7 +137,7 @@ p_classic <- ggplot(plot_data, aes(x = Condition_Group, y = price)) +
   geom_boxplot(
     notch = TRUE,
     fill = "white",
-    width = 0.5,
+    width = 0.55,
     linewidth = 0.4,
     outlier.size = 2
   )  +
@@ -162,7 +162,7 @@ p_dual <- notched_boxplot(
   indent_pct = 0.125
 ) +
   labs(
-    title = "(b) Mean-notched boxplots",
+    title = "(b) Dual-notched boxplots",
     x = NULL,
     y = NULL
   ) +
