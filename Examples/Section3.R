@@ -130,18 +130,18 @@ theme_unified <- function() {
 # ==============================================================================
 # PLOTTING SECTION
 # ==============================================================================
-method_levels <- c("Chauvenet", "Fixed 1.5", "No outlier removal")
+method_levels <- c("Chauvenet", "Fixed 1.5", "Without outlier removal")
 
 method_colors <- c(
   "Chauvenet" = "#E63946",
   "Fixed 1.5" = "darkgreen",
-  "No outlier removal" = "black"
+  "Without outlier removal" = "black"
 )
 
 method_linetypes <- c(
   "Chauvenet" = "solid",
   "Fixed 1.5" = "dashed",
-  "No outlier removal" = "dotted"
+  "Without outlier removal" = "dotted"
 )
 
 # (a) Relative MAE under 5 Outliers (Chauvenet as curve, baseline = 1)
@@ -152,7 +152,7 @@ plot_A_data <- study2_results %>%
     Method = factor(case_when(
       Method == "ReMAE_Ch_Cont" ~ "Chauvenet",
       Method == "ReMAE_15_Cont" ~ "Fixed 1.5",
-      Method == "ReMAE_No_Cont" ~ "No outlier removal"
+      Method == "ReMAE_No_Cont" ~ "Without outlier removal"
     ), levels = method_levels)
   )
 
