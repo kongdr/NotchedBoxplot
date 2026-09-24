@@ -1,15 +1,8 @@
 Package: NotchedBoxplot
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: MIT + file LICENSE
+Title: Create Notched Boxplots with Adaptive Fences
+Version: 0.1.0
+Description: Generates notched boxplots comparing outlier detection methods.
+License: MIT
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 8.0.0
-Imports: 
-    dplyr,
-    ggplot2,
-    stats,
-    tidyr
+Config/roxygen2/version: 8.0.0

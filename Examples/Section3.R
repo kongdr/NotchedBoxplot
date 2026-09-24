@@ -39,8 +39,8 @@ calc_notch_stats <- function(x, k, n_original, c_mu = 1.7) {
 
 set.seed(2026)
 
-n_seq <- c(50, 100, 200, 500, 1000)
-iterations <- 5000
+n_seq <- c(20, 50, 100, 200, 500, 1000)
+iterations <- 10000
 study2_results <- data.frame()
 
 for (N in n_seq) {
@@ -64,9 +64,9 @@ for (N in n_seq) {
     n_contam <- 5
     x_contam <- c(rnorm(N - n_contam, 0, 1), rnorm(n_contam, 4, 1))
 
-    D_no_cont[i] <- calc_notch_stats(x_contam, Inf, N)$D
-    D_15_cont[i] <- calc_notch_stats(x_contam, 1.5, N)$D
-    D_ch_cont[i] <- calc_notch_stats(x_contam, k_chau, N)$D
+    D_no_cont[i] <- calc_notch_stats(x_contam, Inf, N - n_contam)$D
+    D_15_cont[i] <- calc_notch_stats(x_contam, 1.5, N - n_contam)$D
+    D_ch_cont[i] <- calc_notch_stats(x_contam, k_chau, N - n_contam)$D
 
     # ---------------------------------------------------------
     # Scenario B: N(0,1)
@@ -159,7 +159,7 @@ plot_A_data <- study2_results %>%
 pA <- ggplot(plot_A_data, aes(x = N, y = ReMAE, color = Method, group = Method, linetype = Method)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
-  scale_y_continuous(limits = c(0.6, 3), breaks = c(0.6, 1.00, 1.4, 1.8, 2.2, 2.6, 3)) +
+  scale_y_continuous(limits = c(0.2, 4), breaks = c(0.2, 1.00, 1.4, 1.8, 2.2, 2.6, 3)) +
   labs(title = "(a) ReMAE under 5 Outliers", x = "n", y = "ReMAE") +
   scale_color_manual(values = method_colors, limits = method_levels) +
   scale_linetype_manual(values = method_linetypes, limits = method_levels) +
@@ -179,7 +179,7 @@ plot_B_data <- study2_results %>%
 pB <- ggplot(plot_B_data, aes(x = N, y = ReMAE, color = Method, group = Method, linetype = Method)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
-  scale_y_continuous(limits = c(0.98, 1.04), breaks = c(0.98, 0.99, 1.00, 1.01, 1.02, 1.03, 1.04)) +
+  scale_y_continuous(limits = c(0.9, 1.15), breaks = c(0.9,0.95,1.0, 1.05, 1.1, 1.15)) +
   labs(title = "(b) ReMAE under N(0,1)", x = "n", y = "") +
   scale_color_manual(values = method_colors) +
   scale_linetype_manual(values = method_linetypes) +

@@ -8,7 +8,7 @@ notched_boxplot(
   data,
   group_col,
   value_col,
-  fence_rule = c("chau", "1.5"),
+  fence_rule = c("auto", "chau", "1.5"),
   show_mean = TRUE,
   show_med = TRUE,
   width = 0.4,
@@ -29,7 +29,7 @@ notched_boxplot(
 
 \item{value_col}{The column name for the values to plot (character string).}
 
-\item{fence_rule}{Character. The outlier detection rule. Options are "chau" (the sample-size-adjusted fences based on Chauvenet’s criterion) or "1.5" (Tukey’s fences with a 1.5 multiplier). Default is "chau".}
+\item{fence_rule}{Character. The outlier detection rule. Options are \code{"auto"} (adaptively applies Tukey’s fixed fences with coefficient 1.5 for \eqn{n < 72} and the Chauvenet-tyoe fences for \eqn{n \ge 72}), \code{"chau"} (the Chauvenet-tyoe fences), or \code{"1.5"} (Tukey’s fixed fences with coefficient 1.5). Default is \code{"auto"}.}
 
 \item{show_mean}{Logical. Whether to display the mean notch. Default is TRUE.}
 
