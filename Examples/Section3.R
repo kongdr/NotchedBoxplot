@@ -1,13 +1,13 @@
 # ==============================================================================
-# (a) Relative MAE under 5 Outliers (Chauvenet as Baseline)
-# (b) Relative MAE under N(0,1) (Chauvenet as Baseline)
+# (a) Relative MAIE under 5 Outliers (Chauvenet as Baseline)
+# (b) Relative MAIE under N(0,1) (Chauvenet as Baseline)
 # ==============================================================================
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(patchwork)
 
-# Computation Function: Absolute estimation error (MAE)
+# Computation Function (MAIE)
 calc_notch_stats <- function(x, k, n_original, c_mu = 1.7) {
   q1 <- quantile(x, 0.25, names = FALSE)
   q3 <- quantile(x, 0.75, names = FALSE)
@@ -39,7 +39,7 @@ calc_notch_stats <- function(x, k, n_original, c_mu = 1.7) {
 
 set.seed(2026)
 
-n_seq <- c(20, 50, 100, 200, 500, 1000)
+n_seq <- c(10,20, 50, 100,200,300,400, 500, 600, 700,800,900,1000)
 iterations <- 10000
 study2_results <- data.frame()
 
@@ -88,14 +88,14 @@ for (N in n_seq) {
   study2_results <- rbind(study2_results, data.frame(
     N = N,
     # Scenario A: Chauvenet is the baseline denominator
-    ReMAE_No_Cont = mean(D_no_cont) / mean(D_ch_cont),
-    ReMAE_15_Cont = mean(D_15_cont) / mean(D_ch_cont),
-    ReMAE_Ch_Cont = mean(D_ch_cont) / mean(D_ch_cont), # Exactly 1.0
+    ReMAIE_No_Cont = mean(D_no_cont) / mean(D_ch_cont),
+    ReMAIE_15_Cont = mean(D_15_cont) / mean(D_ch_cont),
+    ReMAIE_Ch_Cont = mean(D_ch_cont) / mean(D_ch_cont), # Exactly 1.0
 
     # Scenario B: Chauvenet is the baseline denominator
-    ReMAE_No_Pure = mean(D_no_pure) / mean(D_ch_pure),
-    ReMAE_15_Pure = mean(D_15_pure) / mean(D_ch_pure),
-    ReMAE_Ch_Pure = mean(D_ch_pure) / mean(D_ch_pure), # Exactly 1.0
+    ReMAIE_No_Pure = mean(D_no_pure) / mean(D_ch_pure),
+    ReMAIE_15_Pure = mean(D_15_pure) / mean(D_ch_pure),
+    ReMAIE_Ch_Pure = mean(D_ch_pure) / mean(D_ch_pure), # Exactly 1.0
 
     # Internal Tracking
     SD_15_Pure = mean(SD_15_pure),
@@ -123,64 +123,64 @@ theme_unified <- function() {
       legend.direction = "horizontal",
       legend.text = element_text(size = 16),
       plot.title = element_text(size = 16,  hjust = 0.5, color = "grey20"),
-      plot.margin = margin(10, 5, 10, 5)
+      plot.margin = margin(10, 5, 10, 5),
+      legend.key.width = unit(1.5, "cm")
     )
 }
 
 # ==============================================================================
 # PLOTTING SECTION
 # ==============================================================================
-method_levels <- c("Chauvenet", "Fixed 1.5", "Without outlier removal")
+method_levels <- c("Without outlier removal","Fixed fences","Chauvenet-type fences")
 
 method_colors <- c(
-  "Chauvenet" = "#E63946",
-  "Fixed 1.5" = "darkgreen",
+  "Chauvenet-type fences" = "#E63946",
+  "Fixed fences" = "darkgreen",
   "Without outlier removal" = "black"
 )
 
 method_linetypes <- c(
-  "Chauvenet" = "solid",
-  "Fixed 1.5" = "dashed",
+  "Chauvenet-type fences" = "solid",
+  "Fixed fences" = "dashed",
   "Without outlier removal" = "dotted"
 )
-
-# (a) Relative MAE under 5 Outliers (Chauvenet as curve, baseline = 1)
+# (a) Relative MAIE under 5 Outliers (Chauvenet as curve, baseline = 1)
 plot_A_data <- study2_results %>%
-  pivot_longer(cols = c(ReMAE_15_Cont, ReMAE_No_Cont, ReMAE_Ch_Cont), names_to = "Method", values_to = "ReMAE") %>%
+  pivot_longer(cols = c(ReMAIE_15_Cont, ReMAIE_No_Cont, ReMAIE_Ch_Cont), names_to = "Method", values_to = "ReMAIE") %>%
   mutate(
-    N = factor(N, levels = n_seq),
+    N = as.numeric(as.character(N)),
     Method = factor(case_when(
-      Method == "ReMAE_Ch_Cont" ~ "Chauvenet",
-      Method == "ReMAE_15_Cont" ~ "Fixed 1.5",
-      Method == "ReMAE_No_Cont" ~ "Without outlier removal"
+      Method == "ReMAIE_No_Cont" ~ "Without outlier removal",
+      Method == "ReMAIE_Ch_Cont" ~ "Chauvenet-type fences",
+      Method == "ReMAIE_15_Cont" ~ "Fixed fences"
     ), levels = method_levels)
   )
 
-pA <- ggplot(plot_A_data, aes(x = N, y = ReMAE, color = Method, group = Method, linetype = Method)) +
+pA <- ggplot(plot_A_data, aes(x = N, y = ReMAIE, color = Method, group = Method, linetype = Method)) +
   geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  scale_y_continuous(limits = c(0.2, 4), breaks = c(0.2, 1.00, 1.4, 1.8, 2.2, 2.6, 3)) +
-  labs(title = "(a) ReMAE under 5 Outliers", x = "n", y = "ReMAE") +
+  scale_y_continuous(limits = c(0.6, 3), breaks = c(0.6, 1.0, 1.4, 1.8, 2.2, 2.6, 3.0)) +
+  scale_x_continuous(limits = c(0, 1050), breaks = seq(0, 1000, 250)) +
+  labs(title = "(a) ReMAIE under 5 Outliers", x = "n", y = "ReMAIE") +
   scale_color_manual(values = method_colors, limits = method_levels) +
   scale_linetype_manual(values = method_linetypes, limits = method_levels) +
   theme_unified()
 
-# (b) Relative MAE under N(0,1) (Chauvenet and Fixed 1.5)
+# (b) Relative MAIE under N(0,1) (Chauvenet and Fixed 1.5)
 plot_B_data <- study2_results %>%
-  pivot_longer(cols = c(ReMAE_15_Pure, ReMAE_Ch_Pure), names_to = "Method", values_to = "ReMAE") %>%
+  pivot_longer(cols = c(ReMAIE_15_Pure, ReMAIE_Ch_Pure), names_to = "Method", values_to = "ReMAIE") %>%
   mutate(
-    N = factor(N, levels = n_seq),
+    N = as.numeric(as.character(N)),
     Method = factor(case_when(
-      Method == "ReMAE_Ch_Pure" ~ "Chauvenet",
-      Method == "ReMAE_15_Pure" ~ "Fixed 1.5"
+      Method == "ReMAIE_Ch_Pure" ~ "Chauvenet-type fences",
+      Method == "ReMAIE_15_Pure" ~ "Fixed fences"
     ), levels = method_levels)
   )
-
-pB <- ggplot(plot_B_data, aes(x = N, y = ReMAE, color = Method, group = Method, linetype = Method)) +
+target_n <- c(10, 20, 50, 100, 200, 300, 400,500, 800, 1000)
+pB <- ggplot(plot_B_data %>% filter(N %in% target_n), aes(x = N, y = ReMAIE, color = Method, group = Method, linetype = Method)) +
   geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  scale_y_continuous(limits = c(0.9, 1.15), breaks = c(0.9,0.95,1.0, 1.05, 1.1, 1.15)) +
-  labs(title = "(b) ReMAE under N(0,1)", x = "n", y = "") +
+  scale_y_continuous(limits = c(0.9, 1.1), breaks = c(0.9, 0.95, 1.0, 1.05, 1.1)) +
+  scale_x_continuous(limits = c(0, 1050), breaks = c(0, 250, 500, 750, 1000)) +
+  labs(title = "(b) ReMAIE under N(0,1)", x = "n", y = "") +
   scale_color_manual(values = method_colors) +
   scale_linetype_manual(values = method_linetypes) +
   guides(color = "none", linetype = "none") +
@@ -193,7 +193,8 @@ plot_final <- (pA | pB) +
     legend.position = "bottom",
     legend.box = "horizontal",
     legend.justification = "center",
-    legend.box.just = "center"
+    legend.box.just = "center",
+    legend.key.width = unit(2, "cm")
   )
 
 print(plot_final)
