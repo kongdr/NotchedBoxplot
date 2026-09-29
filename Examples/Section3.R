@@ -39,7 +39,7 @@ calc_notch_stats <- function(x, k, n_original, c_mu = 1.7) {
 
 set.seed(2026)
 
-n_seq <- c(10,20, 50, 100,200,300,400, 500, 600, 700,800,900,1000)
+n_seq <- c(15,20, 50, 100,200,300,400, 500, 600, 700,800,900,1000)
 iterations <- 10000
 study2_results <- data.frame()
 
@@ -159,7 +159,7 @@ plot_A_data <- study2_results %>%
 pA <- ggplot(plot_A_data, aes(x = N, y = ReMAIE, color = Method, group = Method, linetype = Method)) +
   geom_line(linewidth = 1) +
   scale_y_continuous(limits = c(0.6, 3), breaks = c(0.6, 1.0, 1.4, 1.8, 2.2, 2.6, 3.0)) +
-  scale_x_continuous(limits = c(0, 1050), breaks = seq(0, 1000, 250)) +
+  scale_x_continuous(limits = c(0, 1010), breaks = seq(0, 1000, 250)) +
   labs(title = "(a) ReMAIE under 5 Outliers", x = "n", y = "ReMAIE") +
   scale_color_manual(values = method_colors, limits = method_levels) +
   scale_linetype_manual(values = method_linetypes, limits = method_levels) +
@@ -175,11 +175,11 @@ plot_B_data <- study2_results %>%
       Method == "ReMAIE_15_Pure" ~ "Fixed fences"
     ), levels = method_levels)
   )
-target_n <- c(10, 20, 50, 100, 200, 300, 400,500, 800, 1000)
+target_n <- c(15, 20, 50, 100, 200, 300, 400,500, 800, 1000)
 pB <- ggplot(plot_B_data %>% filter(N %in% target_n), aes(x = N, y = ReMAIE, color = Method, group = Method, linetype = Method)) +
   geom_line(linewidth = 1) +
   scale_y_continuous(limits = c(0.9, 1.1), breaks = c(0.9, 0.95, 1.0, 1.05, 1.1)) +
-  scale_x_continuous(limits = c(0, 1050), breaks = c(0, 250, 500, 750, 1000)) +
+  scale_x_continuous(limits = c(0, 1010), breaks = c(0, 250, 500, 750, 1000)) +
   labs(title = "(b) ReMAIE under N(0,1)", x = "n", y = "") +
   scale_color_manual(values = method_colors) +
   scale_linetype_manual(values = method_linetypes) +
