@@ -1,5 +1,6 @@
 library(ggplot2)
 library(patchwork)
+library(dplyr)
 library(NotchedBoxplot)
 # ==============================================================================
 # Setting I (Equal Medians)
@@ -10,40 +11,29 @@ x_ref <- rnorm(n)
 x_g5  <- rgamma(n, shape = 5,   scale = 1)
 x_g2  <- rgamma(n, shape = 2,   scale = 1)
 set.seed(4443)
-x_g03 <- rgamma(n, shape = 0.6, scale = 1)
+x_g06 <- rgamma(n, shape = 0.6, scale = 1)
 
-# ==============================================================================
-# Define Population Parameters for Transformation
-# ==============================================================================
-iqr_norm <- qnorm(0.75) - qnorm(0.25)
+# Centered at Sample Median
+ref_med       <- (x_ref - median(x_ref)) / IQR(x_ref)
+skew_mild_I   <- (x_g5  - median(x_g5))  / IQR(x_g5)
+skew_mod_I    <- (x_g2  - median(x_g2))  / IQR(x_g2)
+skew_strong_I <- (x_g06 - median(x_g06)) / IQR(x_g06)
 
-get_gamma_params <- function(shape) {
-  list(
-    mean   = shape * 1,
-    median = qgamma(0.50, shape = shape, scale = 1),
-    iqr    = qgamma(0.75, shape = shape, scale = 1) - qgamma(0.25, shape = shape, scale = 1)
-  )
-}
+# Setting II: Equal Means
+n <- 200
+set.seed(2026)
+x_ref <- rnorm(n)
+x_g5  <- rgamma(n, shape = 5,   scale = 1)
+x_g2  <- rgamma(n, shape = 2,   scale = 1)
+set.seed(1320)
+x_g06 <- rgamma(n, shape = 0.6, scale = 1)
 
-p_g5  <- get_gamma_params(5)
-p_g2  <- get_gamma_params(2)
-p_g03 <- get_gamma_params(0.6)
+# Centered at Sample Mean
+ref_mean       <- (x_ref - mean(x_ref)) / IQR(x_ref)
+skew_mild_II   <- (x_g5  - mean(x_g5))  / IQR(x_g5)
+skew_mod_II    <- (x_g2  - mean(x_g2))  / IQR(x_g2)
+skew_strong_II <- (x_g06 - mean(x_g06)) / IQR(x_g06)
 
-# ==============================================================================
-# Apply Transformations (Setting I and Setting II)
-# ==============================================================================
-
-# Setting I: Equal Medians (Centered at Population Median)
-ref_med       <- (x_ref - 0) / iqr_norm
-skew_mild_I   <- (x_g5  - p_g5$median) / p_g5$iqr
-skew_mod_I    <- (x_g2  - p_g2$median) / p_g2$iqr
-skew_strong_I <- (x_g03 - p_g03$median) / p_g03$iqr
-
-# Setting II: Equal Means (Centered at Population Mean)
-ref_mean       <- (x_ref - 0) / iqr_norm
-skew_mild_II   <- (x_g5  - p_g5$mean) / p_g5$iqr
-skew_mod_II    <- (x_g2  - p_g2$mean) / p_g2$iqr
-skew_strong_II <- (x_g03 - p_g03$mean) / p_g03$iqr
 
 # ==============================================================================
 # PART 4: Assemble Data Frames for the 2x3 Plot Layout
